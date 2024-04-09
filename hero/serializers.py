@@ -12,6 +12,11 @@ class HeroSerializer(serializers.ModelSerializer):
         model = Hero
         fields = ['hero_id', 'hero_name', 'roles', 'specialities', 'lanes']
 
+class HeroRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hero
+        fields = ['hero_id', 'hero_name', 'roles', 'specialities', 'lanes']
+
 class HeroDetailSerializer(serializers.ModelSerializer):
     hero_ratings = HeroRatingsSerializer(many=False, read_only=True)
     class Meta:
