@@ -19,7 +19,7 @@ http://localhost:8000/hero/role/<role name>
 ```
 All hero of a specific lane:
 ```
-http://localhost:8000/hero/role/<lane name>
+http://localhost:8000/hero/lane/<lane name>
 ```
 All hero of a specific speciality:
 ```
