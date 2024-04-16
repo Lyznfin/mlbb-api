@@ -39,7 +39,7 @@ class Hero(models.Model):
     hero_id = models.IntegerField(unique=True)
     hero_name = models.CharField(max_length=50)
     hero_alias = models.CharField(max_length=50)
-    hero_slug = models.SlugField(unique=True, db_index=True)
+    hero_slug = models.SlugField(unique=True, db_index=True, blank=True)
     primary_role: Role = models.ForeignKey("hero.Role", on_delete=models.CASCADE, related_name='primary_role')
     secondary_role: Role = models.ForeignKey("hero.Role", on_delete=models.CASCADE, null=True, blank=True, related_name='secondary_role')
     primary_speciality: Speciality = models.ForeignKey("hero.Speciality", on_delete=models.CASCADE, related_name='primary_speciality')
@@ -78,10 +78,9 @@ class Hero(models.Model):
         super().clean()
 
     def save(self, *args, **kwargs) -> None:
+        name_alias = self.hero_name + ' the ' + self.hero_alias
+        self.hero_slug = slugify(name_alias)
         self.full_clean()
-        if self.hero_slug == None:
-            name_alias = self.hero_name + ' the ' + self.hero_alias
-            self.hero_slug = slugify(name_alias)
         return super().save(*args, **kwargs)
     
     def __str__(self) -> str:

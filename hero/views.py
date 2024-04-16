@@ -1,5 +1,5 @@
 from .models import Hero, Role, Speciality, Lane
-from .serializers import HeroSerializer, HeroDetailSerializer
+from .serializers import HeroSerializer, HeroDetailSerializer, HeroRoleSerializer
 
 from rest_framework import mixins, generics
 from rest_framework.views import APIView
@@ -34,31 +34,33 @@ class HeroDetailApi(mixins.RetrieveModelMixin, generics.GenericAPIView):
     def get(self, request: HttpRequest, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
     
-class HeroRoleApi(generics.ListAPIView):
-    queryset = Hero.objects.all()
-    serializer_class = HeroSerializer
-    lookup_field = "role"
-
+class HeroRoleApi(APIView):
     def get_queryset(self):
-        searched_role = str(self.kwargs['role']).capitalize()
-        all_roles = Role.objects.all()
-        valid_roles = [role.role_name for role in all_roles]
-
-        if searched_role not in valid_roles:
-            return self.queryset.none()
-        else:
-            role = all_roles.get(role_name=searched_role)
-            queryset = Hero.objects.filter(Q(primary_role=role) | Q(secondary_role=role))
+        queryset = Role.objects.all()
+        try:
+            searched_role = str(self.kwargs['role']).capitalize()
+        except KeyError:
             return queryset
-    
-    def get(self, request: HttpRequest, *args, **kwargs):
-        queryset = self.get_queryset()
         
-        if not queryset.exists():
-            error_message = f"No hero matches the given role of {self.kwargs['role']}"
+        searched_role = searched_role.capitalize()
+        valid_roles = [role.role_name for role in queryset]
+        if searched_role not in valid_roles:
+            return None
+        else:
+            return queryset.get(role_name=searched_role)
+    
+    def get(self, request: HttpRequest, *args, **kwargs) -> None:
+        queryset = self.get_queryset()
+        if queryset is None:
+            error_message = f"No hero matches the given role of {self.kwargs.get('role')}"
             return Response({"detail": error_message}, status=status.HTTP_404_NOT_FOUND)
         
-        return self.list(request, *args, **kwargs)
+        if isinstance(queryset, Role):
+            serializer = HeroRoleSerializer(queryset)
+        else:
+            serializer = HeroRoleSerializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class HeroSpecialityApi(generics.ListAPIView):
     queryset = Hero.objects.all()
