@@ -80,7 +80,7 @@ class Hero(models.Model):
     def save(self, *args, **kwargs) -> None:
         self.full_clean()
         if self.hero_slug == None:
-            name_alias = self.hero_name + ' ' + self.hero_alias
+            name_alias = self.hero_name + ' the ' + self.hero_alias
             self.hero_slug = slugify(name_alias)
         return super().save(*args, **kwargs)
     
