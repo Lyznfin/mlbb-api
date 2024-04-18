@@ -78,8 +78,9 @@ class Hero(models.Model):
         super().clean()
 
     def save(self, *args, **kwargs) -> None:
-        name_alias = self.hero_name + ' the ' + self.hero_alias
-        self.hero_slug = slugify(name_alias)
+        if self.hero_slug == None:
+            name_alias = self.hero_name + ' the ' + self.hero_alias
+            self.hero_slug = slugify(name_alias)
         self.full_clean()
         return super().save(*args, **kwargs)
     
