@@ -1,5 +1,5 @@
 from .models import Hero, Role, Speciality, Lane
-from .serializers import HeroSerializer, HeroDetailSerializer, HeroRoleSerializer
+from .serializers import HeroSerializer, HeroDetailSerializer, HeroRoleSerializer, HeroSpecialitySerializer, HeroLaneSerializer
 
 from rest_framework import mixins, generics
 from rest_framework.views import APIView
@@ -42,7 +42,6 @@ class HeroRoleApi(APIView):
         except KeyError:
             return queryset
         
-        searched_role = searched_role.capitalize()
         valid_roles = [role.role_name for role in queryset]
         if searched_role not in valid_roles:
             return None
@@ -62,54 +61,56 @@ class HeroRoleApi(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class HeroSpecialityApi(generics.ListAPIView):
-    queryset = Hero.objects.all()
-    serializer_class = HeroSerializer
-    lookup_field = "speciality"
-
+class HeroSpecialityApi(APIView):
     def get_queryset(self):
-        searched_speciality = str(self.kwargs['speciality']).title()
-        all_specialities = Speciality.objects.all()
-        valid_specialities = [speciality.speciality_name for speciality in all_specialities]
-
+        queryset = Speciality.objects.all()
+        try:
+            searched_speciality = str(self.kwargs['speciality']).title()
+        except KeyError:
+            return queryset
+        
+        valid_specialities = [speciality.speciality_name for speciality in queryset]
         if searched_speciality not in valid_specialities:
-            return self.queryset.none()
+            return None
         else:
-            speciality = all_specialities.get(speciality_name=searched_speciality)
-            queryset = Hero.objects.filter(Q(primary_speciality=speciality) | Q(secondary_speciality=speciality))
-            return queryset
+            return queryset.get(speciality_name=searched_speciality)
     
-    def get(self, request: HttpRequest, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> None:
         queryset = self.get_queryset()
-        
-        if not queryset.exists():
-            error_message = f"No hero matches the given speciality of {self.kwargs['speciality']}"
+        if queryset is None:
+            error_message = f"No hero matches the given speciality of {self.kwargs.get('speciality')}"
             return Response({"detail": error_message}, status=status.HTTP_404_NOT_FOUND)
         
-        return self.list(request, *args, **kwargs)
-    
-class HeroLaneApi(generics.ListAPIView):
-    queryset = Hero.objects.all()
-    serializer_class = HeroSerializer
-    lookup_field = "lane"
+        if isinstance(queryset, Speciality):
+            serializer = HeroSpecialitySerializer(queryset)
+        else:
+            serializer = HeroSpecialitySerializer(queryset, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class HeroLaneApi(APIView):
     def get_queryset(self):
-        searched_lane = str(self.kwargs['lane']).replace("%20", " ").title()
-        all_lanes = Lane.objects.all()
-        valid_lanes = [lane.lane_name for lane in all_lanes]
-
-        if searched_lane not in valid_lanes:
-            return self.queryset.none()
-        else:
-            lane = all_lanes.get(lane_name=searched_lane)
-            queryset = Hero.objects.filter(Q(primary_lane=lane) | Q(secondary_lane=lane))
+        queryset = Lane.objects.all()
+        try:
+            searched_lane = str(self.kwargs['lane']).title()
+        except KeyError:
             return queryset
-    
-    def get(self, request: HttpRequest, *args, **kwargs):
-        queryset = self.get_queryset()
         
-        if not queryset.exists():
-            error_message = f"No hero matches the given kane of {self.kwargs['lane']}"
+        valid_lane = [lane.lane_name for lane in queryset]
+        if searched_lane not in valid_lane:
+            return None
+        else:
+            return queryset.get(lane_name=searched_lane)
+    
+    def get(self, request: HttpRequest, *args, **kwargs) -> None:
+        queryset = self.get_queryset()
+        if queryset is None:
+            error_message = f"No hero matches the given lane of {self.kwargs.get('lane')}"
             return Response({"detail": error_message}, status=status.HTTP_404_NOT_FOUND)
         
-        return self.list(request, *args, **kwargs)
+        if isinstance(queryset, Lane):
+            serializer = HeroLaneSerializer(queryset)
+        else:
+            serializer = HeroLaneSerializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
