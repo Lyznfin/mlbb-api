@@ -17,13 +17,21 @@ All hero of a specific role:
 ```
 http://localhost:8000/hero/role/<role name>
 ```
+All lanes and its heroes:
+```
+http://localhost:8000/hero/lane/
+```
 All hero of a specific lane:
 ```
 http://localhost:8000/hero/lane/<lane name>
+```
+All specialities and its heroes:
+```
+http://localhost:8000/hero/speciality/
 ```
 All hero of a specific speciality:
 ```
 http://localhost:8000/hero/speciality/<speciality name>
 ```
 
-Will add more as time pass
+Only have 5 complete heroes, will add more as time pass
